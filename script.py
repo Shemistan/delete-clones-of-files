@@ -1,17 +1,14 @@
 from PIL import Image, ImageChops
 import os
-
-
-def photo_comparison(file_1, file_2):
-    result = ImageChops.difference(file_1, file_2).getbbox()
-    return result
+from collections import defaultdict
 
 
 class Equalizer:
-    image_formats = ('.jpg', '.png')
+    IMAGE_FORMATS = ('.jpg', '.png', '.JPG', '.PNG', '.bmp', '.BMP')
 
     def __init__(self, path, size=None):
         self.dict_all_photos = {}
+        self.comparision_dick = {}
         self.identical_photos = []
         if size is None:
             size = [100, 75]
@@ -22,33 +19,51 @@ class Equalizer:
         n = 0
         for dirpath, dirnames, filenames in os.walk(self.path):
             for file in filenames:
-                if filenames != [] and file[-4:] in self.image_formats:
+                if filenames != [] and file[-4:] in self.IMAGE_FORMATS:
                     dirnames = os.path.join(dirpath, file)
                     self.dict_all_photos[n] = [dirpath, dirnames, file]
                     n += 1
 
-    def search_for_identical_photos(self):
-        task_dick = self.dict_all_photos
+    def check_by_size(self):
+        comparision_dick = dict(self.dict_all_photos)
+        new_dict_all_photos = defaultdict(int)
+        ch = len(self.dict_all_photos)
         for i in self.dict_all_photos.keys():
-            current_file_path = self.dict_all_photos[i][1]
-            current_file = self.work_with_photos(photo=current_file_path)
-            del task_dick[i]
-            for n in task_dick.keys():
-                check_file_path = task_dick[n][1]
-                check_file = self.work_with_photos(photo=check_file_path)
-                result = photo_comparison(file_1=current_file, file_2=check_file)
+            ch -= 1
+            print(ch)
+            list_identic_photo = []
+            current_file = os.stat(self.dict_all_photos[i][1]).st_size
+            del comparision_dick[i]
+            for n in comparision_dick.keys():
+                check_file = os.stat(comparision_dick[n][1]).st_size
+                if current_file == check_file:
+                    list_identic_photo.append(comparision_dick[n][1])
+            if list_identic_photo:
+                new_dict_all_photos[self.dict_all_photos[i][1]] = list_identic_photo
+        self.dict_all_photos = dict(new_dict_all_photos)
+
+    def search_for_identical_photos(self):
+        for foto, identic_fotos in self.dict_all_photos.items():
+            current_file = self.work_with_photos(photo=foto)
+            for identic_foto in identic_fotos:
+                check_file = self.work_with_photos(photo=identic_foto)
+                result = ImageChops.difference(current_file, check_file).getbbox()
                 if result is None:
-                    self.identical_photos.append([current_file_path, check_file_path])
+                    self.identical_photos.append([foto, identic_foto])
 
     def work_with_photos(self, photo):
         file = Image.open(photo)
         file.thumbnail(self.size)
         return file
 
-# print(result.getbbox())
-# path = '/Users/shemistan/фото/Азербайджан/'
-# photo = Equalizer(path=path)
-# photo.looking_for_all_photos()
-# photo.search_for_identical_photos()
-# photo.try_except()
-# photo.search_for_identical_photos()
+    def show(self):
+        for i in self.identical_photos:
+            print(i)
+
+path = '/Users/shemistan/фото/Азербайджан/Фото Рабочий стол'
+photo = Equalizer(path=path)
+photo.looking_for_all_photos()
+photo.check_by_size()
+photo.search_for_identical_photos()
+photo.show()
+
