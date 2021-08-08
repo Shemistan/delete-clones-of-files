@@ -8,7 +8,6 @@ class Equalizer:
 
     def __init__(self, path, size=None):
         self.dict_all_photos = {}
-        self.comparision_dick = {}
         self.identical_photos = []
         if size is None:
             size = [100, 75]
@@ -24,13 +23,13 @@ class Equalizer:
                     self.dict_all_photos[n] = [dirpath, dirnames, file]
                     n += 1
 
-    def check_by_size(self):
+    def check_for_size(self):
         comparision_dick = dict(self.dict_all_photos)
         new_dict_all_photos = defaultdict(int)
         ch = len(self.dict_all_photos)
         for i in self.dict_all_photos.keys():
             ch -= 1
-            print(ch)
+            print('Progress of implementation check_by_size ----->  ', ch)
             list_identic_photo = []
             current_file = os.stat(self.dict_all_photos[i][1]).st_size
             del comparision_dick[i]
@@ -42,8 +41,11 @@ class Equalizer:
                 new_dict_all_photos[self.dict_all_photos[i][1]] = list_identic_photo
         self.dict_all_photos = dict(new_dict_all_photos)
 
-    def search_for_identical_photos(self):
+    def check_for_pixel(self):
+        ch = len(self.dict_all_photos)
         for foto, identic_fotos in self.dict_all_photos.items():
+            ch -= 1
+            print('Progress of implementation check_for_pixel ----->  ', ch)
             current_file = self.work_with_photos(photo=foto)
             for identic_foto in identic_fotos:
                 check_file = self.work_with_photos(photo=identic_foto)
@@ -56,14 +58,21 @@ class Equalizer:
         file.thumbnail(self.size)
         return file
 
-    def show(self):
+    def remove_clones_of_photo(self):
         for i in self.identical_photos:
-            print(i)
+            os.remove(i[1])
 
-path = '/Users/shemistan/фото/Азербайджан/Фото Рабочий стол'
+    def show(self):
+        n = 0
+        for i in self.identical_photos:
+            print(n, ' ', i[0], ' <--------> ', i[1])
+            n += 1
+
+
+path = '/Users/shemistan/фото/'
 photo = Equalizer(path=path)
 photo.looking_for_all_photos()
-photo.check_by_size()
-photo.search_for_identical_photos()
+photo.check_for_size()
+photo.check_for_pixel()
 photo.show()
-
+#photo.remove_clones_of_photo()
