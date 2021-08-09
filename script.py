@@ -42,15 +42,18 @@ class Equalizer:
         comparision_dick = dict(self.dict_all_photos)
         new_dict_all_photos = {}
         progress_of_implementation = len(self.dict_all_photos)
+
         for key_dict_1 in self.dict_all_photos.keys():
             progress_of_implementation -= 1
             print('Progress of implementation '
                   f'check_by_size ----->  {progress_of_implementation}')
             list_identic_photo = []
+
             current_file = self.find_out_the_size_of_the_image(
                 image=self.dict_all_photos[key_dict_1][1]
             )
             del comparision_dick[key_dict_1]
+
             for key_dict_2 in comparision_dick.keys():
                 if comparision_dick[key_dict_2]:
                     check_file = self.find_out_the_size_of_the_image(
