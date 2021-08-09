@@ -1,6 +1,5 @@
 import os
 from PIL import Image, ImageChops
-from collections import defaultdict
 
 
 class Equalizer:
@@ -26,22 +25,31 @@ class Equalizer:
             for file in filenames:
                 if file != [] and file[-4:] in self.IMAGE_FORMATS:
                     dirnames = os.path.join(dirpath, file)
-                    self.dict_all_photos[dictonary_key] = [dirpath, dirnames, file]
+                    self.dict_all_photos[dictonary_key] = [
+                        dirpath,
+                        dirnames,
+                        file
+                    ]
                     dictonary_key += 1
 
     def check_for_size(self):
         comparision_dick = dict(self.dict_all_photos)
-        new_dict_all_photos = defaultdict(int)
-        execution_process = len(self.dict_all_photos)
+        new_dict_all_photos = {}
+        progress_of_implementation = len(self.dict_all_photos)
         for key_dict_1 in self.dict_all_photos.keys():
-            execution_process -= 1
-            print('Progress of implementation check_by_size ----->  ', execution_process)
+            progress_of_implementation -= 1
+            print('Progress of implementation '
+                  f'check_by_size ----->  {progress_of_implementation}')
             list_identic_photo = []
-            current_file = os.stat(self.dict_all_photos[key_dict_1][1]).st_size
+            current_file = self.find_out_the_size_of_the_image(
+                image=self.dict_all_photos[key_dict_1][1]
+            )
             del comparision_dick[key_dict_1]
             for key_dict_2 in comparision_dick.keys():
                 if comparision_dick[key_dict_2]:
-                    check_file = os.stat(comparision_dick[key_dict_2][1]).st_size
+                    check_file = self.find_out_the_size_of_the_image(
+                        image=comparision_dick[key_dict_2][1]
+                    )
                     if current_file == check_file:
                         list_identic_photo.append(comparision_dick[key_dict_2][1])
                         comparision_dick[key_dict_2] = None
@@ -51,40 +59,48 @@ class Equalizer:
         self.dict_all_photos = dict(new_dict_all_photos)
 
     def check_for_pixel(self):
-        execution_process = len(self.dict_all_photos)
+        progress_of_implementation = len(self.dict_all_photos)
         clones = []
         for foto, identic_fotos in self.dict_all_photos.items():
-            execution_process -= 1
-            print('Progress of implementation check_for_pixel ----->  ', execution_process)
-            current_file = self.work_with_photos(photo=foto)
+            progress_of_implementation -= 1
+            print('Progress of implementation '
+                  f'check_for_pixel ----->   {progress_of_implementation}')
+            current_file = self.open_photo_and_resize(photo=foto)
             for identic_foto in identic_fotos:
-                check_file = self.work_with_photos(photo=identic_foto)
+                check_file = self.open_photo_and_resize(photo=identic_foto)
                 result = ImageChops.difference(current_file, check_file).getbbox()
                 if result is None:
                     clones.append(identic_foto)
             self.identical_photos.append([foto, clones])
             clones = []
 
-    def work_with_photos(self, photo):
+    def open_photo_and_resize(self, photo):
         file = Image.open(photo)
         file.thumbnail(self.size)
         return file
 
+    def find_out_the_size_of_the_image(self, image):
+        return os.stat(image).st_size
+
     def remove_clones_of_photo(self):
+        self.run()
         for i in self.identical_photos:
             os.remove(i[1])
 
     def show(self):
-        n = 0
-        for i in self.identical_photos:
-            print(n, ' ', i[0], ' <--------> ', i[1])
-            n += 1
+        number_of_clones = 0
+        print('**'*20, 'List of identical photos')
+        for clones in self.identical_photos:
+            print(number_of_clones, ' Original ->', clones[0], ' Clones-->', clones[1])
+            number_of_clones += 1
 
+    def run(self):
+        self.looking_for_all_photos()
+        self.check_for_size()
+        self.check_for_pixel()
+        self.show()
 
 path = '/Users/shemistan/фото/'
 photo = Equalizer(path=path)
-photo.looking_for_all_photos()
-photo.check_for_size()
-photo.check_for_pixel()
-photo.show()
+photo.run()
 # photo.remove_clones_of_photo()
