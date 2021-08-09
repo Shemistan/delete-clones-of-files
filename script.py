@@ -2,6 +2,10 @@ import os
 from PIL import Image, ImageChops
 
 
+class ValueError(Exception):
+    pass
+
+
 class Equalizer:
     """Script for finding identical photos
      of various formats with the ability
@@ -31,6 +35,8 @@ class Equalizer:
                         file
                     ]
                     dictonary_key += 1
+        if self.dict_all_photos == {}:
+            raise ValueError('No images found in the specified path!')
 
     def check_for_size(self):
         comparision_dick = dict(self.dict_all_photos)
@@ -84,12 +90,14 @@ class Equalizer:
 
     def remove_clones_of_photo(self):
         self.run()
-        for i in self.identical_photos:
-            os.remove(i[1])
+        for foto in self.identical_photos:
+            for clones in foto[1]:
+                if clones:
+                    os.remove(clones)
 
     def show(self):
         number_of_clones = 0
-        print('**'*20, 'List of identical photos')
+        print('**' * 20, 'List of identical photos')
         for clones in self.identical_photos:
             print(number_of_clones, ' Original ->', clones[0], ' Clones-->', clones[1])
             number_of_clones += 1
@@ -100,7 +108,8 @@ class Equalizer:
         self.check_for_pixel()
         self.show()
 
+
 path = '/Users/shemistan/фото/'
 photo = Equalizer(path=path)
 photo.run()
-# photo.remove_clones_of_photo()
+photo.remove_clones_of_photo()
